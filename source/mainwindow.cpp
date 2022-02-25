@@ -4,7 +4,8 @@
 #include <QInputDialog>
 #include "dialog.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), R(5), S(5), rezim(true), velikostPole(50)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+    R(5), S(5), krok(0.0), faktor(1.0), rezim(true), velikostPole(50)
 {
     setWindowTitle("MDP");
     nastavFormular();
@@ -124,7 +125,7 @@ void MainWindow::vycisti()
 
 void MainWindow::nastav()
 {
-    Dialog * dialog = new Dialog();
+    Dialog * dialog = new Dialog(R,S,krok,faktor);
     if(dialog->exec())
     {
         this->R = dialog->getR();

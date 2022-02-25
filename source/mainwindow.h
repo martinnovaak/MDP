@@ -13,8 +13,8 @@ public:
     ~MainWindow();
 
 private:
-    unsigned int R;
-    unsigned int S;
+    unsigned int R, S;
+    double krok, faktor;
 
     QVector <QPushButton *> tlacitka;
 
