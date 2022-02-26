@@ -38,7 +38,6 @@ private slots:
     void stisknuto(int index);
     void vycisti();
     void nastav();
-    void nacti();
     void vypocti();
 };
 #endif // MAINWINDOW_H

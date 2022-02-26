@@ -3,6 +3,7 @@
 #include <QSignalMapper>
 #include <QInputDialog>
 #include "dialog.h"
+#include "MDP.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     R(5), S(5), krok(0.0), faktor(1.0), rezim(true), velikostPole(50)
@@ -21,6 +22,7 @@ void MainWindow::nastavFormular()
 {
     this->odmena = new QAction("Odměna");
     this->prekazka = new QAction("Překážka");
+    this->vyres = new QAction("Vyřeš");
     this->vycistit = new QAction("Vyčistit");
     this->nastaveni = new QAction("Nastavení");
     this->nacist = new QAction("Načíst");
@@ -30,6 +32,7 @@ void MainWindow::nastavFormular()
     upravy->addAction(odmena);
     upravy->addAction(prekazka);
     upravy->addSeparator();
+    upravy->addAction(vyres);
     upravy->addAction(vycistit);
     menubar->addMenu(upravy);
 
@@ -41,10 +44,10 @@ void MainWindow::nastavFormular()
 
     connect(prekazka, &QAction::triggered, this, [this]{rezim = false;});
     connect(odmena, &QAction::triggered, this, [this]{rezim = true;});
+    connect(vyres, &QAction::triggered, this, &MainWindow::vypocti);
     connect(vycistit, &QAction::triggered, this, &MainWindow::vycisti);
 
     connect(nastaveni, &QAction::triggered, this, &MainWindow::nastav);
-    connect(nacist, &QAction::triggered, this, &MainWindow::nacti);
 }
 
 void MainWindow::nastavTlacitka()
@@ -115,9 +118,11 @@ void MainWindow::stisknuto(int index)
 
 void MainWindow::vycisti()
 {
+    this->odmena->setEnabled(true);
+    this->prekazka->setEnabled(true);
     for(int i = 0; i < tlacitka.size(); i++)
     {
-        tlacitka[i]->setText("0");
+        tlacitka[i]->setText("");
         tlacitka[i]->setProperty("typ", 0);
         nastavBarvu(tlacitka[i], Qt::white);
     }
@@ -128,20 +133,62 @@ void MainWindow::nastav()
     Dialog * dialog = new Dialog(R,S,krok,faktor);
     if(dialog->exec())
     {
+        this->krok = dialog->getKrok();
+        this->faktor = dialog->getFaktor();
+
+        unsigned int r = R, s = S;
         this->R = dialog->getR();
         this->S = dialog->getS();
+        if(R != r || S != s)
+            nastavTlacitka();
     }
-    nastavTlacitka();
-}
 
-
-void MainWindow::nacti()
-{
 
 }
 
 void MainWindow::vypocti()
 {
+    this->odmena->setEnabled(false);
+    this->prekazka->setEnabled(false);
+
+    MDP mdp(R, S, krok, faktor);
+    for (int i = 0; i < this->tlacitka.size(); i++)
+    {
+        QPushButton * tl = tlacitka[i];
+        Souradnice xy(i/S,i%S);
+        if(tl->property("typ").toInt() == 2)
+            mdp.nastavOdmenu(xy,tl->property("odmena").toDouble());
+        else if (tl->property("typ").toInt() == 1)
+            mdp.nastavPristupnost(xy, false);
+    }
+    mdp.vyres(0.0001);
+    for(unsigned int i = 0; i < R; i++)
+    {
+        Stav * stav = mdp[i];
+        for (unsigned int j = 0; j < S; j++)
+        {
+            QString text = "";
+            QPushButton * tl = this->tlacitka[i*S+j];
+            if(!stav->pristupny)
+                continue;
+            if(stav->koncovy)
+            {
+                if(mdp.jeCilovy(stav))
+                    nastavBarvu(tl, Qt::yellow);
+                else if (stav->odmena > 0.0)
+                    nastavBarvu(tl, Qt::green);
+                else
+                    nastavBarvu(tl, Qt::red);
+            }
+            else
+                text += mdp.smer(stav);
+            text += "\n";
+            text += QString::number(stav->odmena, 'f' , 3);
+            tl->setText(text);
+            stav = stav->vychod;
+
+        }
+    }
 
 }
 

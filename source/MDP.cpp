@@ -180,8 +180,12 @@ void MDP::vyres(double epsilon)
 			U_predchozi.at(j) = stavy.at(j)->odmena;
 			stavy.at(j)->spoctiSmer(faktor, krok);
 		}
-		this->print();
-	} while (!konverguje(stavy, U_predchozi, epsilon));
+    } while (!konverguje(stavy, U_predchozi, epsilon));
+}
+
+Stav * MDP::operator[](unsigned int i)
+{
+   return radky[i];
 }
 
 bool MDP::konverguje(std::vector<Stav*>& stavy, std::vector<double>& U_predchozi, double epsilon)
@@ -208,7 +212,7 @@ void MDP::vytvorSeznamStavu(std::vector<Stav*>& stavy, std::vector<double>& U_pr
 		stavy.push_back(pom);
 		U_predchozi.push_back(pom->odmena);
 	}
-	for (int i = 0; i < stavy.size(); i++) stavy.at(i)->pristupny = true;
+    for (unsigned int i = 0; i < stavy.size(); i++) stavy.at(i)->pristupny = true;
 }
 
 void MDP::pridejSousedy(std::queue<Stav*>& fronta, Stav* pom)

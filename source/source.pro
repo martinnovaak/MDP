@@ -18,6 +18,7 @@ SOURCES += \
 HEADERS += \
     MDP.h \
     Stav.h \
+    Stav.h \
     dialog.h \
     mainwindow.h
 
